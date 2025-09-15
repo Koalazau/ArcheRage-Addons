@@ -13,7 +13,7 @@ ADDON:ImportObject(OBJECT_TYPE.LABEL)
 ADDON:ImportAPI(API_TYPE.CHAT.id)
 ADDON:ImportAPI(API_TYPE.UNIT.id)
 
--- Color presets (R, G, B, A)
+-- Color presets (R, G, B, A) - Global for commands.lua
 LMN_ColorPresets = {
     red = {1, 0.2, 0.2, 1},
     blue = {0.2, 0.4, 1, 1},
@@ -27,13 +27,13 @@ LMN_ColorPresets = {
     lime = {0.5, 1, 0.2, 1}
 }
 
--- Configuration
+-- Configuration - Global for commands.lua
 local CONFIG_FILE = "LowManaNotice_Config.txt"
 LMN_Config = {
     enabled = true,
     manaThreshold = 30,  -- Alert when mana drops below this %
-    checkInterval = 100,  -- milliseconds between checks
-    cooldownTime = 1000,  -- milliseconds before allowing repeat notification
+    checkInterval = 1000,  -- milliseconds between checks
+    cooldownTime = 10000,  -- milliseconds before allowing repeat notification
     showOnScreen = true,  -- Show text on screen
     posX = 0,  -- X position relative to center
     posY = 0,  -- Y position relative to center
@@ -47,11 +47,11 @@ refreshForcer:Show(true)
 local counter = 0
 local cooldownCounter = 0
 local wasLowMana = false
-LMN_WarningLabel = nil
-LMN_WarningWindow = nil
+LMN_WarningLabel = nil  -- Global for commands.lua
+LMN_WarningWindow = nil  -- Global for commands.lua
 local playerName = nil
 
--- Save configuration
+-- Save configuration - Global for commands.lua
 function LMN_SaveConfig()
     local file = io.open(CONFIG_FILE, "w")
     if not file then
@@ -88,7 +88,7 @@ local function LoadConfig()
     end
 end
 
--- Get current mana percentage
+-- Get current mana percentage - Global for commands.lua
 function LMN_GetManaPercentage()
     local currentMana = tonumber(X2Unit:UnitMana("player"))
     local maxMana = tonumber(X2Unit:UnitMaxMana("player"))
@@ -98,7 +98,7 @@ function LMN_GetManaPercentage()
     return 100
 end
 
--- Helper function to update window position
+-- Helper function to update window position - Global for commands.lua
 function LMN_UpdateWindowPosition()
     if LMN_WarningWindow then
         LMN_WarningWindow:RemoveAllAnchors()
@@ -106,7 +106,7 @@ function LMN_UpdateWindowPosition()
     end
 end
 
--- Helper function to apply color to label
+-- Helper function to apply color to label - Global for commands.lua
 function LMN_ApplyLabelColor(colorName)
     if LMN_WarningLabel then
         local color = LMN_ColorPresets[colorName] or LMN_ColorPresets.red
@@ -122,6 +122,7 @@ function refreshForcer:OnUpdate(dt)
     
     counter = counter + dt
     
+    -- Update cooldown counter
     if cooldownCounter > 0 then
         cooldownCounter = cooldownCounter - dt
     end
@@ -131,15 +132,18 @@ function refreshForcer:OnUpdate(dt)
         
         if manaPercent < LMN_Config.manaThreshold then
             if not wasLowMana or cooldownCounter <= 0 then
+                --X2Chat:DispatchChatMessage(CMF_SYSTEM, "Mana is low")
                 cooldownCounter = LMN_Config.cooldownTime
                 wasLowMana = true
             end
+            -- Show on-screen warning
             if LMN_Config.showOnScreen and LMN_WarningWindow then
                 LMN_WarningWindow:Show(true)
                 LMN_WarningLabel:SetText(string.format("MANA LOW! %.0f%%", manaPercent))
             end
         else
             wasLowMana = false
+            -- Hide on-screen warning
             if LMN_WarningWindow then
                 LMN_WarningWindow:Show(false)
             end
@@ -185,52 +189,6 @@ commandHandlers["reset"] = function()
     X2Chat:DispatchChatMessage(CMF_SYSTEM, "Warning position, size and color reset!")
 end
 
-commandHandlers["move up"] = function()
-    LMN_Config.posY = LMN_Config.posY - 20
-    LMN_SaveConfig()
-    LMN_UpdateWindowPosition()
-    X2Chat:DispatchChatMessage(CMF_SYSTEM, "Warning moved up")
-end
-
-commandHandlers["move down"] = function()
-    LMN_Config.posY = LMN_Config.posY + 20
-    LMN_SaveConfig()
-    LMN_UpdateWindowPosition()
-    X2Chat:DispatchChatMessage(CMF_SYSTEM, "Warning moved down")
-end
-
-commandHandlers["move left"] = function()
-    LMN_Config.posX = LMN_Config.posX - 20
-    LMN_SaveConfig()
-    LMN_UpdateWindowPosition()
-    X2Chat:DispatchChatMessage(CMF_SYSTEM, "Warning moved left")
-end
-
-commandHandlers["move right"] = function()
-    LMN_Config.posX = LMN_Config.posX + 20
-    LMN_SaveConfig()
-    LMN_UpdateWindowPosition()
-    X2Chat:DispatchChatMessage(CMF_SYSTEM, "Warning moved right")
-end
-
-commandHandlers["size bigger"] = function()
-    LMN_Config.fontSize = math.min(LMN_Config.fontSize + 2, 48)
-    LMN_SaveConfig()
-    if LMN_WarningLabel then
-        LMN_WarningLabel.style:SetFontSize(LMN_Config.fontSize)
-    end
-    X2Chat:DispatchChatMessage(CMF_SYSTEM, string.format("Font size increased to %d", LMN_Config.fontSize))
-end
-
-commandHandlers["size smaller"] = function()
-    LMN_Config.fontSize = math.max(LMN_Config.fontSize - 2, 10)
-    LMN_SaveConfig()
-    if LMN_WarningLabel then
-        LMN_WarningLabel.style:SetFontSize(LMN_Config.fontSize)
-    end
-    X2Chat:DispatchChatMessage(CMF_SYSTEM, string.format("Font size decreased to %d", LMN_Config.fontSize))
-end
-
 commandHandlers["screen on"] = function()
     LMN_Config.showOnScreen = true
     LMN_SaveConfig()
@@ -246,13 +204,59 @@ commandHandlers["screen off"] = function()
     X2Chat:DispatchChatMessage(CMF_SYSTEM, "On-screen warning disabled!")
 end
 
+commandHandlers["screen up"] = function()
+    LMN_Config.posY = LMN_Config.posY - 20
+    LMN_SaveConfig()
+    LMN_UpdateWindowPosition()
+    X2Chat:DispatchChatMessage(CMF_SYSTEM, "Warning moved up")
+end
+
+commandHandlers["screen down"] = function()
+    LMN_Config.posY = LMN_Config.posY + 20
+    LMN_SaveConfig()
+    LMN_UpdateWindowPosition()
+    X2Chat:DispatchChatMessage(CMF_SYSTEM, "Warning moved down")
+end
+
+commandHandlers["screen left"] = function()
+    LMN_Config.posX = LMN_Config.posX - 20
+    LMN_SaveConfig()
+    LMN_UpdateWindowPosition()
+    X2Chat:DispatchChatMessage(CMF_SYSTEM, "Warning moved left")
+end
+
+commandHandlers["screen right"] = function()
+    LMN_Config.posX = LMN_Config.posX + 20
+    LMN_SaveConfig()
+    LMN_UpdateWindowPosition()
+    X2Chat:DispatchChatMessage(CMF_SYSTEM, "Warning moved right")
+end
+
+commandHandlers["screen bigger"] = function()
+    LMN_Config.fontSize = math.min(LMN_Config.fontSize + 2, 48)
+    LMN_SaveConfig()
+    if LMN_WarningLabel then
+        LMN_WarningLabel.style:SetFontSize(LMN_Config.fontSize)
+    end
+    X2Chat:DispatchChatMessage(CMF_SYSTEM, string.format("Font size increased to %d", LMN_Config.fontSize))
+end
+
+commandHandlers["screen smaller"] = function()
+    LMN_Config.fontSize = math.max(LMN_Config.fontSize - 2, 10)
+    LMN_SaveConfig()
+    if LMN_WarningLabel then
+        LMN_WarningLabel.style:SetFontSize(LMN_Config.fontSize)
+    end
+    X2Chat:DispatchChatMessage(CMF_SYSTEM, string.format("Font size decreased to %d", LMN_Config.fontSize))
+end
+
 commandHandlers["screen colorlist"] = function()
     X2Chat:DispatchChatMessage(CMF_SYSTEM, "Available colors:")
     local colorList = ""
     for name, _ in pairs(LMN_ColorPresets) do
         colorList = colorList .. name .. ", "
     end
-    colorList = string.sub(colorList, 1, -3)
+    colorList = string.sub(colorList, 1, -3)  -- Remove trailing comma
     X2Chat:DispatchChatMessage(CMF_SYSTEM, colorList)
 end
 
@@ -260,11 +264,13 @@ end
 local function HandleChatCommand(msg)
     local cmd = string.lower(msg)
     
+    -- Check for simple commands first
     if commandHandlers[cmd] then
         commandHandlers[cmd]()
         return
     end
     
+    -- Handle commands with parameters
     if cmd:match("^percent ") then
         local percent = tonumber(cmd:match("^percent (%d+)"))
         if percent and percent >= 1 and percent <= 99 then
@@ -309,21 +315,25 @@ local function HandleChatCommand(msg)
         X2Chat:DispatchChatMessage(CMF_SYSTEM, "  !lmn percent 1-99 - Set mana threshold percentage")
         X2Chat:DispatchChatMessage(CMF_SYSTEM, "  !lmn interval 100-10000 - Set check interval in milliseconds")
         X2Chat:DispatchChatMessage(CMF_SYSTEM, "  !lmn cooldown 1-300 - Set cooldown in seconds")
-        X2Chat:DispatchChatMessage(CMF_SYSTEM, "  !lmn move up/down/left/right - Move warning")
-        X2Chat:DispatchChatMessage(CMF_SYSTEM, "  !lmn size bigger/smaller - Resize warning text")
-        X2Chat:DispatchChatMessage(CMF_SYSTEM, "  !lmn screen on/off/color [name]/colorlist - Screen options")
+        X2Chat:DispatchChatMessage(CMF_SYSTEM, "  !lmn screen on/off - Toggle on-screen warning")
+        X2Chat:DispatchChatMessage(CMF_SYSTEM, "  !lmn screen up/down/left/right - Move warning")
+        X2Chat:DispatchChatMessage(CMF_SYSTEM, "  !lmn screen bigger/smaller - Resize warning text")
+        X2Chat:DispatchChatMessage(CMF_SYSTEM, "  !lmn screen color [name] - Set text color")
+        X2Chat:DispatchChatMessage(CMF_SYSTEM, "  !lmn screen colorlist - Show available colors")
         X2Chat:DispatchChatMessage(CMF_SYSTEM, "  !lmn reset - Reset position, size and color")
     end
 end
 
 -- Create on-screen warning display
 local function CreateWarningDisplay()
+    -- Create a draggable window to hold the label
     LMN_WarningWindow = CreateEmptyWindow("manaWarningWindow", "UIParent")
     LMN_WarningWindow:SetExtent(200, 50)
     LMN_WarningWindow:AddAnchor("CENTER", "UIParent", LMN_Config.posX, LMN_Config.posY)
     LMN_WarningWindow:EnableDrag(true)
     LMN_WarningWindow:Show(false)
     
+    -- Create the label inside the window
     LMN_WarningLabel = LMN_WarningWindow:CreateChildWidget("label", "manaWarningLabel", 0, false)
     LMN_WarningLabel:SetExtent(200, 50)
     LMN_WarningLabel:AddAnchor("CENTER", LMN_WarningWindow, 0, 0)
@@ -334,6 +344,7 @@ local function CreateWarningDisplay()
     LMN_WarningLabel.style:SetColor(color[1], color[2], color[3], color[4])
     LMN_WarningLabel.style:SetShadow(true)
     
+    -- Drag handlers
     function LMN_WarningWindow:OnDragStart()
         self:StartMoving()
         self.moving = true
@@ -343,6 +354,7 @@ local function CreateWarningDisplay()
     function LMN_WarningWindow:OnDragStop()
         self:StopMovingOrSizing()
         self.moving = false
+        -- Save position
         local _, _, _, offsetX, offsetY = LMN_WarningWindow:GetAnchor()
         LMN_Config.posX = offsetX
         LMN_Config.posY = offsetY
@@ -368,7 +380,7 @@ end
 
 LoadConfig()
 CreateWarningDisplay()
-playerName = X2Unit:UnitName("player")
+playerName = X2Unit:UnitName("player")  -- Cache player name at startup
 
 -- Chat event listener
 local chatEventListenerEvents = {
