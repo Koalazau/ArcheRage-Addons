@@ -84,21 +84,44 @@
             statusElement.className = 'status up-to-date';
         }
 
-        // Try to call back to the addon with version information (like Treasure Hunter does)
+        // Try to communicate version data through various methods
         setTimeout(function() {
+            // Method 1: Try setting document title
+            document.title = 'VERSION:' + currentVersion + '|' + latestVersion + '|' + comparison;
+
+            // Method 2: Try creating a data element
+            var dataDiv = document.createElement('div');
+            dataDiv.id = 'versionData';
+            dataDiv.setAttribute('data-current', currentVersion);
+            dataDiv.setAttribute('data-latest', latestVersion);
+            dataDiv.setAttribute('data-comparison', comparison);
+            dataDiv.style.display = 'none';
+            dataDiv.textContent = currentVersion + '|' + latestVersion + '|' + comparison;
+            document.body.appendChild(dataDiv);
+
+            // Method 3: Try setting window.name
             try {
-                // Try different ways to access the parent window's global functions
-                if (window.parent && window.parent._G && window.parent._G.OnVersionCheckComplete) {
-                    window.parent._G.OnVersionCheckComplete(currentVersion, latestVersion, comparison);
-                } else if (window._G && window._G.OnVersionCheckComplete) {
-                    window._G.OnVersionCheckComplete(currentVersion, latestVersion, comparison);
-                } else if (window.top && window.top._G && window.top._G.OnVersionCheckComplete) {
-                    window.top._G.OnVersionCheckComplete(currentVersion, latestVersion, comparison);
+                window.name = 'VERSION:' + currentVersion + '|' + latestVersion + '|' + comparison;
+            } catch(e) {}
+
+            // Method 4: Try localStorage (if available in game browser)
+            try {
+                if (typeof(Storage) !== "undefined") {
+                    localStorage.setItem('combatcloset_version', latestVersion);
+                    localStorage.setItem('combatcloset_comparison', comparison);
                 }
-            } catch (e) {
-                console.log('Could not call back to addon:', e);
-            }
-        }, 1000); // Wait 1 second for the page to fully load
+            } catch(e) {}
+
+            // Add visible indicator that data was set
+            var indicator = document.createElement('div');
+            indicator.style.position = 'fixed';
+            indicator.style.bottom = '5px';
+            indicator.style.right = '5px';
+            indicator.style.fontSize = '10px';
+            indicator.style.color = '#666';
+            indicator.textContent = 'Data set: ' + currentVersion + '→' + latestVersion;
+            document.body.appendChild(indicator);
+        }, 500);
     </script>
 </body>
 </html>
