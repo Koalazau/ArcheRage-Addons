@@ -5,39 +5,84 @@
     <style>
         body {
             margin: 0;
-            padding: 0;
+            padding: 10px;
             font-family: Arial, sans-serif;
             background: #1a1a1a;
             color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
         }
         .version-container {
             text-align: center;
+            padding: 20px;
         }
-        #version {
+        .current-version {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #87CEEB;
+        }
+        .latest-version {
             font-size: 24px;
             font-weight: bold;
             color: #FFD700;
+            margin-bottom: 15px;
+        }
+        .status {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .up-to-date {
+            color: #90EE90;
+        }
+        .update-available {
+            color: #FF6B6B;
         }
     </style>
 </head>
 <body>
     <div class="version-container">
-        <div>Combat Closet Latest Version:</div>
-        <div id="version">1.2.0</div>
+        <div class="current-version">Your version: <span id="currentVersion">Loading...</span></div>
+        <div>Latest version:</div>
+        <div class="latest-version" id="latestVersion">1.1.0</div>
+        <div class="status" id="status">Checking...</div>
     </div>
 
     <script>
-        // This script will be called by the addon to get the version
-        function getLatestVersion() {
-            return document.getElementById('version').textContent.trim();
+        // Get current version from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentVersion = urlParams.get('current') || 'Unknown';
+        const latestVersion = document.getElementById('latestVersion').textContent.trim();
+
+        // Display current version
+        document.getElementById('currentVersion').textContent = currentVersion;
+
+        // Compare versions and show status
+        function compareVersions(current, latest) {
+            const parseVersion = (v) => v.split('.').map(num => parseInt(num, 10));
+            const currentParsed = parseVersion(current);
+            const latestParsed = parseVersion(latest);
+
+            for (let i = 0; i < Math.max(currentParsed.length, latestParsed.length); i++) {
+                const currentNum = currentParsed[i] || 0;
+                const latestNum = latestParsed[i] || 0;
+                if (latestNum > currentNum) return 1;
+                if (latestNum < currentNum) return -1;
+            }
+            return 0;
         }
 
-        // Make the version available globally for the addon
-        window.latestVersion = document.getElementById('version').textContent.trim();
+        const comparison = compareVersions(currentVersion, latestVersion);
+        const statusElement = document.getElementById('status');
+
+        if (comparison > 0) {
+            statusElement.textContent = '🔄 Update Available - Please update via Discord or Manager';
+            statusElement.className = 'status update-available';
+        } else if (comparison === 0) {
+            statusElement.textContent = '✅ You have the latest version!';
+            statusElement.className = 'status up-to-date';
+        } else {
+            statusElement.textContent = '🚀 You have a newer version than released!';
+            statusElement.className = 'status up-to-date';
+        }
     </script>
 </body>
 </html>
