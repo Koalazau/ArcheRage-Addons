@@ -42,7 +42,7 @@
     <div class="version-container">
         <div class="current-version">Your version: <span id="currentVersion">Loading...</span></div>
         <div>Latest version:</div>
-        <div class="latest-version" id="latestVersion">1.0.9</div>
+        <div class="latest-version" id="latestVersion">1.3.0</div>
         <div class="status" id="status">Checking...</div>
     </div>
 
@@ -83,6 +83,22 @@
             statusElement.textContent = '🚀 You have a newer version than released!';
             statusElement.className = 'status up-to-date';
         }
+
+        // Try to call back to the addon with version information (like Treasure Hunter does)
+        setTimeout(function() {
+            try {
+                // Try different ways to access the parent window's global functions
+                if (window.parent && window.parent._G && window.parent._G.OnVersionCheckComplete) {
+                    window.parent._G.OnVersionCheckComplete(currentVersion, latestVersion, comparison);
+                } else if (window._G && window._G.OnVersionCheckComplete) {
+                    window._G.OnVersionCheckComplete(currentVersion, latestVersion, comparison);
+                } else if (window.top && window.top._G && window.top._G.OnVersionCheckComplete) {
+                    window.top._G.OnVersionCheckComplete(currentVersion, latestVersion, comparison);
+                }
+            } catch (e) {
+                console.log('Could not call back to addon:', e);
+            }
+        }, 1000); // Wait 1 second for the page to fully load
     </script>
 </body>
 </html>
