@@ -77,17 +77,43 @@
         <div class="vs-divider">VS</div>
 
         <div class="version-item latest-version">
-            Latest version: <span class="version-number" id="latestVersion">1.2.0</span>
+            Latest version: <span class="version-number" id="latestVersion">1.3.0</span>
         </div>
 
         <div class="status" id="status">Checking...</div>
     </div>
 
     <script>
-        // Get current version from URL parameter
+        // Get parameters from URL
         const urlParams = new URLSearchParams(window.location.search);
         const currentVersion = urlParams.get('current') || 'Unknown';
+        const format = urlParams.get('format');
         const latestVersion = document.getElementById('latestVersion').textContent.trim();
+
+        // If JSON format is requested, return JSON response
+        if (format === 'json') {
+            const jsonResponse = {
+                addons: {
+                    combatcloset: {
+                        name: "Combat Closet",
+                        current_version: currentVersion,
+                        latest_version: latestVersion,
+                        download_url: "https://github.com/koalazau/ArcheRage-Addons",
+                        description: "Advanced combat outfit management system for ArcheRage"
+                    }
+                },
+                version: latestVersion,
+                timestamp: new Date().toISOString()
+            };
+
+            // Display JSON response in the page
+            document.body.innerHTML = '<pre style="color: #ffffff; background: rgb(0, 11, 25); padding: 20px; font-family: monospace; white-space: pre-wrap;">' +
+                JSON.stringify(jsonResponse, null, 2) + '</pre>';
+
+            // Also make it available globally for the webbrowser to access
+            window.versionData = jsonResponse;
+            return;
+        }
 
         // Display current version
         document.getElementById('currentVersion').textContent = currentVersion;
