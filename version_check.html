@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>Combat Closet Version Check</title>
-    <meta http-equiv="refresh" content="0; url=#version=1.1.0&addons=combatcloset,treasurehunter">
     <style>
         body {
             margin: 0;
@@ -85,37 +84,10 @@
     </div>
 
     <script>
-        // Get parameters from URL
+        // Get current version from URL parameter
         const urlParams = new URLSearchParams(window.location.search);
         const currentVersion = urlParams.get('current') || 'Unknown';
-        const format = urlParams.get('format');
         const latestVersion = document.getElementById('latestVersion').textContent.trim();
-
-        // Create JSON response data
-        const jsonResponse = {
-            addons: {
-                combatcloset: {
-                    name: "Combat Closet",
-                    current_version: currentVersion,
-                    latest_version: latestVersion,
-                    download_url: "https://github.com/koalazau/ArcheRage-Addons",
-                    description: "Advanced combat outfit management system for ArcheRage"
-                }
-            },
-            version: latestVersion,
-            timestamp: new Date().toISOString()
-        };
-
-        // Make JSON data available globally for the webbrowser to access
-        window.versionData = jsonResponse;
-
-        // If JSON format is specifically requested, show JSON only
-        if (format === 'json') {
-            // Display JSON response in the page
-            document.body.innerHTML = '<pre style="color: #ffffff; background: rgb(0, 11, 25); padding: 20px; font-family: monospace; white-space: pre-wrap;">' +
-                JSON.stringify(jsonResponse, null, 2) + '</pre>';
-            return;
-        }
 
         // Display current version
         document.getElementById('currentVersion').textContent = currentVersion;
@@ -162,19 +134,6 @@
                 }
             } catch (e) {
                 console.log('Could not call back to addon:', e);
-            }
-
-            // Also send JSON data to addon
-            try {
-                if (window.parent && window.parent._G && window.parent._G.OnJSONDataReceived) {
-                    window.parent._G.OnJSONDataReceived(JSON.stringify(jsonResponse));
-                } else if (window._G && window._G.OnJSONDataReceived) {
-                    window._G.OnJSONDataReceived(JSON.stringify(jsonResponse));
-                } else if (window.top && window.top._G && window.top._G.OnJSONDataReceived) {
-                    window.top._G.OnJSONDataReceived(JSON.stringify(jsonResponse));
-                }
-            } catch (e) {
-                console.log('Could not call back to addon with JSON data:', e);
             }
         }, 1000); // Wait 1 second for the page to fully load
     </script>
