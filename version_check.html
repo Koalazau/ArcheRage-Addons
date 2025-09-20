@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Combat Closet Version Check</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .version-container {
+            text-align: center;
+        }
+        #version {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+        }
+    </style>
+</head>
+<body>
+    <div class="version-container">
+        <div>Combat Closet Latest Version:</div>
+        <div id="version">1.1.0</div>
+    </div>
+
+    <script>
+        // This script will be called by the addon to get the version
+        function getLatestVersion() {
+            return document.getElementById('version').textContent.trim();
+        }
+
+        // Make the version available globally for the addon
+        window.latestVersion = document.getElementById('version').textContent.trim();
+    </script>
+</body>
+</html>
