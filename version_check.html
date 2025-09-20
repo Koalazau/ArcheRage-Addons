@@ -3,236 +3,84 @@
 <head>
     <title>Combat Closet Version Check</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
-            color: #ffffff;
             margin: 0;
-            padding: 5px;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Simplified background particles for small space */
-        body::before {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(255,215,0,0.02) 1px, transparent 1px);
-            background-size: 30px 30px;
-            animation: drift 20s linear infinite;
-            z-index: -1;
-        }
-
-        @keyframes drift {
-            from { transform: translate(-15px, -15px); }
-            to { transform: translate(0, 0); }
+            padding: 8px;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            font-size: 14px;
         }
 
         .version-container {
             text-align: center;
-            padding: 15px 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-            width: 100%;
-            height: calc(100vh - 10px);
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            animation: fadeIn 0.5s ease-out;
+            padding: 10px;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Title decoration - smaller */
-        .version-container::before {
-            content: '⚔️';
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 16px;
-            filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
-        }
-
-        .version-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #888;
-            margin-bottom: 3px;
+        .version-item {
+            margin: 8px 0;
+            padding: 6px;
+            border-radius: 4px;
         }
 
         .current-version {
-            font-size: 14px;
-            margin-bottom: 8px;
-            color: #87CEEB;
-            position: relative;
-            padding: 8px;
-            background: rgba(135, 206, 235, 0.1);
-            border-radius: 6px;
+            background: rgba(135, 206, 235, 0.15);
             border: 1px solid rgba(135, 206, 235, 0.3);
+            color: #87CEEB;
         }
 
-        .current-version span {
+        .latest-version {
+            background: rgba(255, 215, 0, 0.15);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: #FFD700;
             font-weight: bold;
-            font-size: 16px;
-            background: linear-gradient(45deg, #87CEEB, #ADD8E6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
         .vs-divider {
-            font-size: 10px;
             color: #666;
-            margin: 8px 0;
-            position: relative;
-        }
-
-        .vs-divider::before,
-        .vs-divider::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            width: 35%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, #666, transparent);
-        }
-
-        .vs-divider::before { left: 0; }
-        .vs-divider::after { right: 0; }
-
-        .latest-version {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            position: relative;
-            padding: 8px;
-            background: rgba(255, 215, 0, 0.1);
-            border-radius: 6px;
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes glow {
-            from { box-shadow: 0 0 5px rgba(255, 215, 0, 0.2); }
-            to { box-shadow: 0 0 20px rgba(255, 215, 0, 0.4), 0 0 30px rgba(255, 215, 0, 0.2); }
-        }
-
-        .latest-version span {
-            background: linear-gradient(45deg, #FFD700, #FFA500);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-size: 20px;
+            margin: 6px 0;
+            font-size: 12px;
         }
 
         .status {
-            font-size: 12px;
+            margin-top: 12px;
+            padding: 8px;
+            border-radius: 4px;
             font-weight: bold;
-            margin-top: 10px;
-            padding: 8px 12px;
-            border-radius: 20px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .status::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-            to { left: 100%; }
+            font-size: 13px;
         }
 
         .up-to-date {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            background: rgba(144, 238, 144, 0.2);
+            border: 1px solid rgba(144, 238, 144, 0.4);
+            color: #90EE90;
         }
 
         .update-available {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
-            animation: pulse 2s ease-in-out infinite;
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.4);
+            color: #FF6B6B;
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-        }
-
-        /* Icons in status */
-        .status-icon {
-            display: inline-block;
-            margin-right: 4px;
-            font-size: 14px;
-            vertical-align: middle;
-            animation: rotate 2s linear infinite;
-        }
-
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .update-available .status-icon {
-            animation: bounce 1s ease-in-out infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
+        .version-number {
+            font-size: 16px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="version-container">
-        <div class="version-label">Current Version</div>
-        <div class="current-version">
-            <span id="currentVersion">Loading...</span>
+        <div class="version-item current-version">
+            Your version: <span class="version-number" id="currentVersion">Loading...</span>
         </div>
 
         <div class="vs-divider">VS</div>
 
-        <div class="version-label">Latest Version</div>
-        <div class="latest-version">
-            <span id="latestVersion">1.1.0</span>
+        <div class="version-item latest-version">
+            Latest version: <span class="version-number" id="latestVersion">1.1.0</span>
         </div>
 
-        <div class="status" id="status">
-            <span class="status-icon">⚡</span>
-            Checking...
-        </div>
+        <div class="status" id="status">Checking...</div>
     </div>
 
     <script>
@@ -263,13 +111,13 @@
         const statusElement = document.getElementById('status');
 
         if (comparison > 0) {
-            statusElement.innerHTML = '<span class="status-icon">🔄</span>Update Available - Please update via Discord or Manager';
+            statusElement.textContent = '🔄 Update Available - Please update via Discord or Manager';
             statusElement.className = 'status update-available';
         } else if (comparison === 0) {
-            statusElement.innerHTML = '<span class="status-icon">✅</span>You have the latest version!';
+            statusElement.textContent = '✅ You have the latest version!';
             statusElement.className = 'status up-to-date';
         } else {
-            statusElement.innerHTML = '<span class="status-icon">🚀</span>You have a newer version than released!';
+            statusElement.textContent = '🚀 You have a newer version than released!';
             statusElement.className = 'status up-to-date';
         }
 
