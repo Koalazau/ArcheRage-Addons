@@ -1,1 +1,14 @@
-
+{
+    "name": "LowManaNotice",
+    "author": "Koala",
+    "version": "1.0.0",
+    "description": "Notifies you when you're low mana",
+    "repository": "https://https://github.com/Koalazau/ArcheRage-Addons",
+    "min_app_version": "1.0.0",
+    "dependencies": [],
+    "category": "Tools",
+    "tags": ["utility", "enhancement", "gameplay"],
+    "changelog": "Initial release with basic functionality",
+    "homepage": "https://your-website.com",
+    "license": "MIT"
+  }
