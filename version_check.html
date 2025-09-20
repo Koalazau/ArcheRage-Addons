@@ -83,45 +83,6 @@
             statusElement.textContent = '🚀 You have a newer version than released!';
             statusElement.className = 'status up-to-date';
         }
-
-        // Try to communicate version data through various methods
-        setTimeout(function() {
-            // Method 1: Try setting document title
-            document.title = 'VERSION:' + currentVersion + '|' + latestVersion + '|' + comparison;
-
-            // Method 2: Try creating a data element
-            var dataDiv = document.createElement('div');
-            dataDiv.id = 'versionData';
-            dataDiv.setAttribute('data-current', currentVersion);
-            dataDiv.setAttribute('data-latest', latestVersion);
-            dataDiv.setAttribute('data-comparison', comparison);
-            dataDiv.style.display = 'none';
-            dataDiv.textContent = currentVersion + '|' + latestVersion + '|' + comparison;
-            document.body.appendChild(dataDiv);
-
-            // Method 3: Try setting window.name
-            try {
-                window.name = 'VERSION:' + currentVersion + '|' + latestVersion + '|' + comparison;
-            } catch(e) {}
-
-            // Method 4: Try localStorage (if available in game browser)
-            try {
-                if (typeof(Storage) !== "undefined") {
-                    localStorage.setItem('combatcloset_version', latestVersion);
-                    localStorage.setItem('combatcloset_comparison', comparison);
-                }
-            } catch(e) {}
-
-            // Add visible indicator that data was set
-            var indicator = document.createElement('div');
-            indicator.style.position = 'fixed';
-            indicator.style.bottom = '5px';
-            indicator.style.right = '5px';
-            indicator.style.fontSize = '10px';
-            indicator.style.color = '#666';
-            indicator.textContent = 'Data set: ' + currentVersion + '→' + latestVersion;
-            document.body.appendChild(indicator);
-        }, 500);
     </script>
 </body>
 </html>
