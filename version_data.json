@@ -1,0 +1,13 @@
+{
+  "addons": {
+    "combatcloset": {
+      "name": "Combat Closet",
+      "current_version": "1.1.0",
+      "latest_version": "1.1.0",
+      "download_url": "https://github.com/koalazau/ArcheRage-Addons",
+      "description": "Advanced combat outfit management system for ArcheRage"
+    }
+  },
+  "version": "1.1.0",
+  "timestamp": "2025-09-21T12:00:00.000Z"
+}
