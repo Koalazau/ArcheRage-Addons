@@ -1,1 +1,243 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Combat Closet Version Check</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 8px;
+            font-family: Arial, sans-serif;
+            background: rgb(0, 11, 25);
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .version-container {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .addon-name {
+            color: #87CEEB;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: capitalize;
+        }
+
+        .version-item {
+            margin: 8px 0;
+            padding: 6px;
+            border-radius: 4px;
+        }
+
+        .current-version {
+            background: rgba(135, 206, 235, 0.15);
+            border: 1px solid rgba(135, 206, 235, 0.3);
+            color: #87CEEB;
+        }
+
+        .latest-version {
+            background: rgba(255, 215, 0, 0.15);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .vs-divider {
+            color: #666;
+            margin: 6px 0;
+            font-size: 12px;
+        }
+
+        .status {
+            margin-top: 12px;
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .up-to-date {
+            background: rgba(144, 238, 144, 0.2);
+            border: 1px solid rgba(144, 238, 144, 0.4);
+            color: #90EE90;
+        }
+
+        .update-available {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.4);
+            color: #FF6B6B;
+        }
+
+        .version-number {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .changelog {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            text-align: left;
+            font-size: 12px;
+            display: none;
+            max-width: 350px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .changelog h4 {
+            color: #FFD700;
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
+        .loading {
+            color: #FFD700;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="version-container">
+        <div class="addon-name" id="addonName">Combat Closet</div>
+
+        <div class="version-item current-version">
+            Your version: <span class="version-number" id="currentVersion">Loading...</span>
+        </div>
+
+        <div class="vs-divider">VS</div>
+
+        <div class="version-item latest-version">
+            Latest version: <span class="version-number loading" id="latestVersion">Checking...</span>
+        </div>
+
+        <div class="status" id="status">Connecting to server...</div>
+
+        <div class="changelog" id="changelog">
+            <h4>What's New:</h4>
+            <div id="changelogContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://jihwhvcpbvjmyhrwjsxp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppaHdodmNwYnZqbXlocndqc3hwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg0MTkwNTUsImV4cCI6MjA3Mzk5NTA1NX0.t4xSN2L4Aa41xCFj8Xr6eSwGo2TNKM-pOQSVBRL6eT0';
+
+        // Get parameters from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const addonName = urlParams.get('addon') || 'combatcloset';
+        const currentVersion = urlParams.get('version') || urlParams.get('current') || 'Unknown';
+
+        // Display addon name and current version immediately
+        document.getElementById('addonName').textContent = addonName.replace(/_/g, ' ').replace(/-/g, ' ');
+        document.getElementById('currentVersion').textContent = currentVersion;
+
+        // Function to compare semantic versions
+        function compareVersions(current, latest) {
+            if (current === 'Unknown' || !current) return 1;
+
+            const parseVersion = (v) => {
+                const parts = v.split('.');
+                return {
+                    major: parseInt(parts[0]) || 0,
+                    minor: parseInt(parts[1]) || 0,
+                    patch: parseInt(parts[2]) || 0
+                };
+            };
+
+            const currentParsed = parseVersion(current);
+            const latestParsed = parseVersion(latest);
+
+            if (latestParsed.major > currentParsed.major) return 1;
+            if (latestParsed.major < currentParsed.major) return -1;
+            if (latestParsed.minor > currentParsed.minor) return 1;
+            if (latestParsed.minor < currentParsed.minor) return -1;
+            if (latestParsed.patch > currentParsed.patch) return 1;
+            if (latestParsed.patch < currentParsed.patch) return -1;
+            return 0;
+        }
+
+        // Function to update the display with fetched data
+        function updateDisplay(latestVersion, changelog) {
+            // Update latest version display
+            document.getElementById('latestVersion').textContent = latestVersion;
+            document.getElementById('latestVersion').className = 'version-number';
+
+            // Compare versions and update status
+            const comparison = compareVersions(currentVersion, latestVersion);
+            const statusElement = document.getElementById('status');
+
+            if (comparison > 0) {
+                statusElement.textContent = '🔄 Update Available - Please update via Discord or Manager';
+                statusElement.className = 'status update-available';
+
+                // Show changelog if available
+                if (changelog && changelog.trim() !== '') {
+                    document.getElementById('changelogContent').innerHTML = changelog.replace(/\n/g, '<br>');
+                    document.getElementById('changelog').style.display = 'block';
+                }
+
+                // Update the URL with the fetched data so it persists
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('latest', latestVersion);
+                newUrl.searchParams.set('changelog', encodeURIComponent(changelog));
+                window.history.replaceState({}, '', newUrl);
+
+            } else if (comparison === 0) {
+                statusElement.textContent = '✅ You have the latest version!';
+                statusElement.className = 'status up-to-date';
+            } else {
+                statusElement.textContent = '🚀 You have a newer version than released!';
+                statusElement.className = 'status up-to-date';
+            }
+        }
+
+        // Check if we already have the latest version in URL (from a redirect or previous fetch)
+        const urlLatestVersion = urlParams.get('latest');
+        const urlChangelog = urlParams.get('changelog');
+
+        if (urlLatestVersion) {
+            // We already have the data in URL, just display it
+            updateDisplay(urlLatestVersion, urlChangelog ? decodeURIComponent(urlChangelog) : '');
+        } else {
+            // Fetch from Supabase
+            fetch(`${SUPABASE_URL}/rest/v1/addon_versions?addon_name=eq.${addonName}&select=current_version,changelog`, {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    const latestVersion = data[0].current_version || '1.1.0';
+                    const changelog = data[0].changelog || '';
+                    updateDisplay(latestVersion, changelog);
+                } else {
+                    // Addon not found, use default
+                    updateDisplay('1.1.0', '');
+                    document.getElementById('status').textContent = '⚠️ Version data not found - using default';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching version:', error);
+                // On error, use default version
+                updateDisplay('1.1.0', '');
+                document.getElementById('status').textContent = '⚠️ Could not connect to server - using default';
+            });
+        }
+    </script>
+</body>
+</html>
