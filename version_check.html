@@ -121,10 +121,10 @@
             statusElement.className = 'status up-to-date';
         }
 
-        // Try to call back to the addon with version information (like Treasure Hunter does)
+        
         setTimeout(function() {
             try {
-                // Try different ways to access the parent window's global functions
+               
                 if (window.parent && window.parent._G && window.parent._G.OnVersionCheckComplete) {
                     window.parent._G.OnVersionCheckComplete(currentVersion, latestVersion, comparison);
                 } else if (window._G && window._G.OnVersionCheckComplete) {
