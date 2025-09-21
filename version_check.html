@@ -84,15 +84,15 @@
     </div>
 
     <script>
-        // Get current version from URL parameter
+        
         const urlParams = new URLSearchParams(window.location.search);
         const currentVersion = urlParams.get('current') || 'Unknown';
         const latestVersion = document.getElementById('latestVersion').textContent.trim();
 
-        // Display current version
+        
         document.getElementById('currentVersion').textContent = currentVersion;
 
-        // Compare versions and show status
+        
         function compareVersions(current, latest) {
             const parseVersion = (v) => v.split('.').map(num => parseInt(num, 10));
             const currentParsed = parseVersion(current);
@@ -135,7 +135,7 @@
             } catch (e) {
                 console.log('Could not call back to addon:', e);
             }
-        }, 1000); // Wait 1 second for the page to fully load
+        }, 1000); 
     </script>
 </body>
 </html>
