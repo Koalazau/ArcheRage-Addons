@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Addon Version Check</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 8px;
+            font-family: Arial, sans-serif;
+            background: rgb(0, 11, 25);
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .version-container {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .addon-name {
+            color: #87CEEB;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: capitalize;
+        }
+
+        .version-item {
+            margin: 8px 0;
+            padding: 6px;
+            border-radius: 4px;
+        }
+
+        .current-version {
+            background: rgba(135, 206, 235, 0.15);
+            border: 1px solid rgba(135, 206, 235, 0.3);
+            color: #87CEEB;
+        }
+
+        .latest-version {
+            background: rgba(255, 215, 0, 0.15);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .vs-divider {
+            color: #666;
+            margin: 6px 0;
+            font-size: 12px;
+        }
+
+        .status {
+            margin-top: 12px;
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .up-to-date {
+            background: rgba(144, 238, 144, 0.2);
+            border: 1px solid rgba(144, 238, 144, 0.4);
+            color: #90EE90;
+        }
+
+        .update-available {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.4);
+            color: #FF6B6B;
+        }
+
+        .version-number {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .loading {
+            color: #FFD700;
+        }
+
+        .error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.4);
+            color: #FF6666;
+        }
+    </style>
+</head>
+<body>
+    <div class="version-container">
+        <div class="addon-name" id="addonName">Loading...</div>
+
+        <div class="version-item current-version">
+            Your version: <span class="version-number" id="currentVersion">Loading...</span>
+        </div>
+
+        <div class="vs-divider">VS</div>
+
+        <div class="version-item latest-version">
+            Latest version: <span class="version-number loading" id="latestVersion">Checking...</span>
+        </div>
+
+        <div class="status" id="status">Connecting to server...</div>
+    </div>
+
+    <script>
+        // Configuration - Replace with your Supabase project details when ready
+        const SUPABASE_URL = 'https://jihwhvcpbvjmyhrwjsxp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppaHdodmNwYnZqbXlocndqc3hwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg0MTkwNTUsImV4cCI6MjA3Mzk5NTA1NX0.t4xSN2L4Aa41xCFj8Xr6eSwGo2TNKM-pOQSVBRL6eT0';
+
+        // Parse URL parameters - supports both old and new format
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Support both parameter formats
+        const addonName = urlParams.get('addon') || 'combatcloset';
+        const currentVersion = urlParams.get('version') || urlParams.get('current') || 'Unknown';
+
+        // Display addon name and current version
+        document.getElementById('addonName').textContent = addonName.replace(/_/g, ' ').replace(/-/g, ' ');
+        document.getElementById('currentVersion').textContent = currentVersion;
+
+        // Function to compare semantic versions
+        function compareVersions(current, latest) {
+            if (current === 'Unknown' || !current) return 1;
+
+            const parseVersion = (v) => {
+                const parts = v.split('.');
+                return {
+                    major: parseInt(parts[0]) || 0,
+                    minor: parseInt(parts[1]) || 0,
+                    patch: parseInt(parts[2]) || 0
+                };
+            };
+
+            const currentParsed = parseVersion(current);
+            const latestParsed = parseVersion(latest);
+
+            if (latestParsed.major > currentParsed.major) return 1;
+            if (latestParsed.major < currentParsed.major) return -1;
+            if (latestParsed.minor > currentParsed.minor) return 1;
+            if (latestParsed.minor < currentParsed.minor) return -1;
+            if (latestParsed.patch > currentParsed.patch) return 1;
+            if (latestParsed.patch < currentParsed.patch) return -1;
+            return 0;
+        }
+
+        // Function to fetch version from Supabase
+        async function checkVersionFromSupabase() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/addon_versions?addon_name=eq.${addonName}`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch version data');
+                }
+
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    const addonData = data[0];
+                    updateVersionStatus(addonData.current_version);
+                } else {
+                    // Fallback to hardcoded version if not in database
+                    fallbackToHardcodedVersion();
+                }
+            } catch (error) {
+                console.error('Error fetching from Supabase:', error);
+                // Fallback to hardcoded version
+                fallbackToHardcodedVersion();
+            }
+        }
+
+        // Fallback function with hardcoded version
+        function fallbackToHardcodedVersion() {
+            // This will be updated on GitHub Pages when new versions are released
+            const hardcodedVersions = {
+                'combatcloset': '1.1.0'
+            };
+
+            const latestVersion = hardcodedVersions[addonName] || '1.0.0';
+            updateVersionStatus(latestVersion);
+        }
+
+        // Function to update UI with version check results
+        function updateVersionStatus(latestVersion) {
+            document.getElementById('latestVersion').textContent = latestVersion;
+            document.getElementById('latestVersion').className = 'version-number';
+
+            const comparison = compareVersions(currentVersion, latestVersion);
+            const statusElement = document.getElementById('status');
+
+            if (comparison > 0) {
+                statusElement.textContent = '🔄 Update Available - Please update via Discord or Manager';
+                statusElement.className = 'status update-available';
+            } else if (comparison === 0) {
+                statusElement.textContent = '✅ You have the latest version!';
+                statusElement.className = 'status up-to-date';
+            } else {
+                statusElement.textContent = '🚀 You have a newer version than released!';
+                statusElement.className = 'status up-to-date';
+            }
+
+            // Try to callback to the addon
+            notifyAddon(currentVersion, latestVersion, comparison);
+        }
+
+        // Function to notify the addon about version check results
+        function notifyAddon(current, latest, comparison) {
+            setTimeout(function() {
+                try {
+                    // Try different ways to access the parent window's global functions
+                    if (window.parent && window.parent._G && window.parent._G.OnVersionCheckComplete) {
+                        window.parent._G.OnVersionCheckComplete(current, latest, comparison);
+                    } else if (window._G && window._G.OnVersionCheckComplete) {
+                        window._G.OnVersionCheckComplete(current, latest, comparison);
+                    } else if (window.top && window.top._G && window.top._G.OnVersionCheckComplete) {
+                        window.top._G.OnVersionCheckComplete(current, latest, comparison);
+                    }
+                } catch (e) {
+                    console.log('Could not call back to addon:', e);
+                }
+            }, 500);
+        }
+
+        // Check if Supabase credentials are configured
+        if (SUPABASE_URL !== 'https://jihwhvcpbvjmyhrwjsxp.supabase.co' && SUPABASE_ANON_KEY !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppaHdodmNwYnZqbXlocndqc3hwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg0MTkwNTUsImV4cCI6MjA3Mzk5NTA1NX0.t4xSN2L4Aa41xCFj8Xr6eSwGo2TNKM-pOQSVBRL6eT0') {
+            // Use Supabase if configured
+            checkVersionFromSupabase();
+        } else {
+            // Use hardcoded fallback
+            fallbackToHardcodedVersion();
+        }
+    </script>
+</body>
+</html>
